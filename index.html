@@ -43,7 +43,6 @@
         }
 
         .item {
-            font-size: 100px;
             transition: transform 0.3s ease;
             cursor: grab;
             user-select: none;
@@ -116,39 +115,90 @@
 
         /* Visual rule displays */
         .shape-circle {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: inline-block;
-            border: 5px solid #2d3436;
+            border: 6px solid #2d3436;
         }
 
         .shape-square {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             display: inline-block;
-            border: 5px solid #2d3436;
+            border: 6px solid #2d3436;
         }
 
         .shape-star {
-            font-size: 100px;
+            width: 0;
+            height: 0;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
+            border-bottom: 100px solid #ffd93d;
+            position: relative;
             display: inline-block;
             filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));
         }
 
-        .color-word {
-            font-size: 70px;
-            font-weight: 900;
-            text-transform: uppercase;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-            letter-spacing: 3px;
+        .shape-star:before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: -60px;
+            width: 0;
+            height: 0;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
+            border-top: 100px solid #ffd93d;
         }
 
-        .category-icon {
-            font-size: 100px;
-            filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));
+        .color-word {
+            font-size: 80px;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+            letter-spacing: 4px;
+        }
+
+        /* Colored geometric shapes for items */
+        .game-shape {
+            width: 120px;
+            height: 120px;
+            display: inline-block;
+            border: 6px solid #2d3436;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .game-shape.round {
+            border-radius: 50%;
+        }
+
+        .game-shape.square {
+            border-radius: 10px;
+        }
+
+        .game-shape.star-shape {
+            width: 0;
+            height: 0;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
+            border-bottom: 100px solid currentColor;
+            position: relative;
+            border: none;
+        }
+
+        .game-shape.star-shape:before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: -60px;
+            width: 0;
+            height: 0;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
+            border-top: 100px solid currentColor;
         }
     </style>
 </head>
@@ -165,7 +215,7 @@
             <div class="flex justify-center mt-4">
                 <div class="craving-bubble">
                     <div class="text-2xl font-bold mb-3" style="color: #2d3436;">I want:</div>
-                    <div id="craving" class="flex justify-center items-center min-h-[100px]"></div>
+                    <div id="craving" class="flex justify-center items-center min-h-[120px]"></div>
                 </div>
             </div>
         </div>
@@ -189,49 +239,55 @@
 
     <script>
         // ============================================
-        // GAME DATA - The STEM Foundation!
+        // GAME DATA - Geometric shapes with colors
         // ============================================
         const ITEMS = [
-            // Food
-            { emoji: "🍎", color: "red", shape: "round", category: "food" },
-            { emoji: "🍊", color: "orange", shape: "round", category: "food" },
-            { emoji: "🍋", color: "yellow", shape: "round", category: "food" },
-            { emoji: "🍇", color: "purple", shape: "round", category: "food" },
-            { emoji: "🍌", color: "yellow", shape: "curved", category: "food" },
-            { emoji: "🍓", color: "red", shape: "round", category: "food" },
-            { emoji: "🍉", color: "green", shape: "round", category: "food" },
-            { emoji: "🧀", color: "yellow", shape: "square", category: "food" },
-            { emoji: "🍫", color: "brown", shape: "square", category: "food" },
+            // RED items
+            { color: "red", shape: "round" },
+            { color: "red", shape: "square" },
+            { color: "red", shape: "star" },
             
-            // Animals
-            { emoji: "🐶", color: "brown", shape: "round", category: "animal" },
-            { emoji: "🐱", color: "orange", shape: "round", category: "animal" },
-            { emoji: "🐭", color: "gray", shape: "round", category: "animal" },
-            { emoji: "🐸", color: "green", shape: "round", category: "animal" },
-            { emoji: "🐷", color: "pink", shape: "round", category: "animal" },
-            { emoji: "🐮", color: "brown", shape: "round", category: "animal" },
+            // YELLOW items
+            { color: "yellow", shape: "round" },
+            { color: "yellow", shape: "square" },
+            { color: "yellow", shape: "star" },
             
-            // Toys
-            { emoji: "⚽", color: "white", shape: "round", category: "toy" },
-            { emoji: "🎈", color: "red", shape: "round", category: "toy" },
-            { emoji: "🎁", color: "red", shape: "square", category: "toy" },
-            { emoji: "🧸", color: "brown", shape: "round", category: "toy" },
-            { emoji: "🎨", color: "multi", shape: "square", category: "toy" },
-            { emoji: "🧩", color: "multi", shape: "square", category: "toy" },
+            // GREEN items
+            { color: "green", shape: "round" },
+            { color: "green", shape: "square" },
+            { color: "green", shape: "star" },
             
-            // Vehicles
-            { emoji: "🚗", color: "red", shape: "square", category: "vehicle" },
-            { emoji: "🚕", color: "yellow", shape: "square", category: "vehicle" },
-            { emoji: "🚙", color: "blue", shape: "square", category: "vehicle" },
-            { emoji: "🚌", color: "yellow", shape: "square", category: "vehicle" },
+            // BLUE items
+            { color: "blue", shape: "round" },
+            { color: "blue", shape: "square" },
+            { color: "blue", shape: "star" },
             
-            // Nature
-            { emoji: "🌸", color: "pink", shape: "round", category: "nature" },
-            { emoji: "🌻", color: "yellow", shape: "round", category: "nature" },
-            { emoji: "🌹", color: "red", shape: "round", category: "nature" },
-            { emoji: "⭐", color: "yellow", shape: "star", category: "nature" },
-            { emoji: "🌙", color: "yellow", shape: "curved", category: "nature" },
+            // ORANGE items
+            { color: "orange", shape: "round" },
+            { color: "orange", shape: "square" },
+            { color: "orange", shape: "star" },
+            
+            // PURPLE items
+            { color: "purple", shape: "round" },
+            { color: "purple", shape: "square" },
+            { color: "purple", shape: "star" },
+            
+            // PINK items
+            { color: "pink", shape: "round" },
+            { color: "pink", shape: "square" },
+            { color: "pink", shape: "star" },
         ];
+
+        // Color hex values
+        const COLOR_MAP = {
+            red: '#e74c3c',
+            yellow: '#f1c40f',
+            green: '#2ecc71',
+            blue: '#3498db',
+            orange: '#e67e22',
+            purple: '#9b59b6',
+            pink: '#fd79a8'
+        };
 
         // Rule configurations with clear visual displays
         const RULES = [
@@ -243,21 +299,11 @@
             { type: "color", value: "orange", displayType: "color", displayText: "ORANGE", displayColor: "#e67e22" },
             { type: "color", value: "purple", displayType: "color", displayText: "PURPLE", displayColor: "#9b59b6" },
             { type: "color", value: "pink", displayType: "color", displayText: "PINK", displayColor: "#fd79a8" },
-            { type: "color", value: "brown", displayType: "color", displayText: "BROWN", displayColor: "#6c5ce7" },
-            { type: "color", value: "gray", displayType: "color", displayText: "GRAY", displayColor: "#636e72" },
-            { type: "color", value: "white", displayType: "color", displayText: "WHITE", displayColor: "#dfe6e9" },
             
             // SHAPES - Show geometric shape
             { type: "shape", value: "round", displayType: "shape", displayShape: "circle" },
             { type: "shape", value: "square", displayType: "shape", displayShape: "square" },
             { type: "shape", value: "star", displayType: "shape", displayShape: "star" },
-            
-            // CATEGORIES - Show representative emoji
-            { type: "category", value: "food", displayType: "category", displayEmoji: "🍎" },
-            { type: "category", value: "animal", displayType: "category", displayEmoji: "🐶" },
-            { type: "category", value: "toy", displayType: "category", displayEmoji: "🎈" },
-            { type: "category", value: "vehicle", displayType: "category", displayEmoji: "🚗" },
-            { type: "category", value: "nature", displayType: "category", displayEmoji: "🌸" },
         ];
 
         // ============================================
@@ -301,10 +347,6 @@
                 colorWord.className = 'color-word';
                 colorWord.textContent = currentRule.displayText;
                 colorWord.style.color = currentRule.displayColor;
-                if (currentRule.displayColor === '#dfe6e9') {
-                    // White text needs dark background to be visible
-                    colorWord.style.textShadow = '3px 3px 0 #2d3436, -1px -1px 0 #2d3436, 1px -1px 0 #2d3436, -1px 1px 0 #2d3436';
-                }
                 cravingEl.appendChild(colorWord);
                 
             } else if (currentRule.displayType === 'shape') {
@@ -320,23 +362,32 @@
                 } else if (currentRule.displayShape === 'star') {
                     const star = document.createElement('div');
                     star.className = 'shape-star';
-                    star.textContent = '⭐';
                     cravingEl.appendChild(star);
                 }
-                
-            } else if (currentRule.displayType === 'category') {
-                // Show category emoji
-                const categoryIcon = document.createElement('div');
-                categoryIcon.className = 'category-icon';
-                categoryIcon.textContent = currentRule.displayEmoji;
-                cravingEl.appendChild(categoryIcon);
             }
         }
 
         function setNewItem() {
             currentItem = getRandomItem(ITEMS);
-            itemContainerEl.textContent = currentItem.emoji;
-            itemInfoEl.textContent = `${currentItem.category} | ${currentItem.color} | ${currentItem.shape}`;
+            displayItem();
+            itemInfoEl.textContent = `${currentItem.color} | ${currentItem.shape}`;
+        }
+
+        function displayItem() {
+            itemContainerEl.innerHTML = '';
+            
+            const shape = document.createElement('div');
+            shape.className = `game-shape ${currentItem.shape === 'round' ? 'round' : currentItem.shape === 'square' ? 'square' : 'star-shape'}`;
+            
+            const bgColor = COLOR_MAP[currentItem.color];
+            
+            if (currentItem.shape === 'star') {
+                shape.style.color = bgColor;
+            } else {
+                shape.style.backgroundColor = bgColor;
+            }
+            
+            itemContainerEl.appendChild(shape);
         }
 
         function checkMatch() {
