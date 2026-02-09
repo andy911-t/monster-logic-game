@@ -1,0 +1,421 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Picky Monster 👾</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        .monster {
+            font-size: 120px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .monster.happy {
+            animation: celebrate 0.5s ease-in-out;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.2) rotate(-5deg); }
+            75% { transform: scale(1.2) rotate(5deg); }
+        }
+
+        .monster.sad {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .item {
+            font-size: 100px;
+            transition: transform 0.3s ease;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .item:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        .craving-bubble {
+            background: white;
+            border-radius: 30px;
+            padding: 20px 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            font-size: 60px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .button:active {
+            transform: scale(0.9);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .feed-btn {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+        }
+
+        .trash-btn {
+            background: linear-gradient(135deg, #ff7675, #d63031);
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f39c12;
+            animation: confetti-fall 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .score {
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .rule-display {
+            font-size: 80px;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-2xl mx-auto p-4">
+        <!-- Score Display -->
+        <div class="text-center mb-4">
+            <div class="score">⭐ <span id="score">0</span></div>
+        </div>
+
+        <!-- Monster & Craving -->
+        <div class="text-center mb-8">
+            <div id="monster" class="monster">👾</div>
+            <div class="flex justify-center mt-4">
+                <div class="craving-bubble">
+                    <div class="text-2xl font-bold mb-2" style="color: #2d3436;">I want:</div>
+                    <div id="craving" class="rule-display">❤️</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Item Display -->
+        <div class="text-center mb-8 min-h-[150px] flex items-center justify-center">
+            <div id="item-container" class="item"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-center gap-8">
+            <button id="trash-btn" class="button trash-btn">❌</button>
+            <button id="feed-btn" class="button feed-btn">✅</button>
+        </div>
+
+        <!-- Hidden Info (For Parent Reference) -->
+        <div class="text-center mt-8 text-white text-sm opacity-50">
+            Rule: <span id="rule-info"></span> | Item: <span id="item-info"></span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GAME DATA - The STEM Foundation!
+        // ============================================
+        const ITEMS = [
+            // Food
+            { emoji: "🍎", color: "red", shape: "round", category: "food" },
+            { emoji: "🍊", color: "orange", shape: "round", category: "food" },
+            { emoji: "🍋", color: "yellow", shape: "round", category: "food" },
+            { emoji: "🍇", color: "purple", shape: "round", category: "food" },
+            { emoji: "🍌", color: "yellow", shape: "curved", category: "food" },
+            { emoji: "🍓", color: "red", shape: "round", category: "food" },
+            { emoji: "🍉", color: "green", shape: "round", category: "food" },
+            { emoji: "🧀", color: "yellow", shape: "square", category: "food" },
+            { emoji: "🍫", color: "brown", shape: "square", category: "food" },
+            
+            // Animals
+            { emoji: "🐶", color: "brown", shape: "round", category: "animal" },
+            { emoji: "🐱", color: "orange", shape: "round", category: "animal" },
+            { emoji: "🐭", color: "gray", shape: "round", category: "animal" },
+            { emoji: "🐸", color: "green", shape: "round", category: "animal" },
+            { emoji: "🐷", color: "pink", shape: "round", category: "animal" },
+            { emoji: "🐮", color: "brown", shape: "round", category: "animal" },
+            
+            // Toys
+            { emoji: "⚽", color: "white", shape: "round", category: "toy" },
+            { emoji: "🎈", color: "red", shape: "round", category: "toy" },
+            { emoji: "🎁", color: "red", shape: "square", category: "toy" },
+            { emoji: "🧸", color: "brown", shape: "round", category: "toy" },
+            { emoji: "🎨", color: "multi", shape: "square", category: "toy" },
+            { emoji: "🧩", color: "multi", shape: "square", category: "toy" },
+            
+            // Vehicles
+            { emoji: "🚗", color: "red", shape: "square", category: "vehicle" },
+            { emoji: "🚕", color: "yellow", shape: "square", category: "vehicle" },
+            { emoji: "🚙", color: "blue", shape: "square", category: "vehicle" },
+            { emoji: "🚌", color: "yellow", shape: "square", category: "vehicle" },
+            
+            // Nature
+            { emoji: "🌸", color: "pink", shape: "round", category: "nature" },
+            { emoji: "🌻", color: "yellow", shape: "round", category: "nature" },
+            { emoji: "🌹", color: "red", shape: "round", category: "nature" },
+            { emoji: "⭐", color: "yellow", shape: "star", category: "nature" },
+            { emoji: "🌙", color: "yellow", shape: "curved", category: "nature" },
+        ];
+
+        // Rule configurations (what the monster can ask for)
+        const RULES = [
+            { type: "color", value: "red", display: "❤️" },
+            { type: "color", value: "yellow", display: "💛" },
+            { type: "color", value: "green", display: "💚" },
+            { type: "color", value: "blue", display: "💙" },
+            { type: "color", value: "orange", display: "🧡" },
+            { type: "color", value: "purple", display: "💜" },
+            { type: "color", value: "pink", display: "💗" },
+            { type: "color", value: "brown", display: "🤎" },
+            
+            { type: "shape", value: "round", display: "🔴" },
+            { type: "shape", value: "square", display: "🟦" },
+            { type: "shape", value: "star", display: "⭐" },
+            
+            { type: "category", value: "food", display: "🍎" },
+            { type: "category", value: "animal", display: "🐶" },
+            { type: "category", value: "toy", display: "🎈" },
+            { type: "category", value: "vehicle", display: "🚗" },
+            { type: "category", value: "nature", display: "🌸" },
+        ];
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        let currentRule = null;
+        let currentItem = null;
+        let score = 0;
+
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const monsterEl = document.getElementById('monster');
+        const cravingEl = document.getElementById('craving');
+        const itemContainerEl = document.getElementById('item-container');
+        const feedBtn = document.getElementById('feed-btn');
+        const trashBtn = document.getElementById('trash-btn');
+        const scoreEl = document.getElementById('score');
+        const ruleInfoEl = document.getElementById('rule-info');
+        const itemInfoEl = document.getElementById('item-info');
+
+        // ============================================
+        // GAME LOGIC
+        // ============================================
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function setNewRule() {
+            currentRule = getRandomItem(RULES);
+            cravingEl.textContent = currentRule.display;
+            ruleInfoEl.textContent = `${currentRule.type}: ${currentRule.value}`;
+        }
+
+        function setNewItem() {
+            currentItem = getRandomItem(ITEMS);
+            itemContainerEl.textContent = currentItem.emoji;
+            itemInfoEl.textContent = `${currentItem.category} | ${currentItem.color} | ${currentItem.shape}`;
+        }
+
+        function checkMatch() {
+            return currentItem[currentRule.type] === currentRule.value;
+        }
+
+        function handleFeed() {
+            if (checkMatch()) {
+                correct();
+            } else {
+                incorrect();
+            }
+        }
+
+        function handleTrash() {
+            if (!checkMatch()) {
+                correct();
+            } else {
+                incorrect();
+            }
+        }
+
+        function correct() {
+            score++;
+            scoreEl.textContent = score;
+            
+            // Happy monster
+            monsterEl.classList.remove('sad');
+            monsterEl.classList.add('happy');
+            setTimeout(() => monsterEl.classList.remove('happy'), 500);
+            
+            // Confetti
+            createConfetti();
+            
+            // Play sound (simple beep using Web Audio API)
+            playSound(800, 0.1);
+            
+            // Next item
+            setTimeout(() => {
+                setNewItem();
+                // Occasionally change rule
+                if (Math.random() < 0.3) {
+                    setNewRule();
+                }
+            }, 600);
+        }
+
+        function incorrect() {
+            // Sad monster
+            monsterEl.classList.remove('happy');
+            monsterEl.classList.add('sad');
+            setTimeout(() => monsterEl.classList.remove('sad'), 500);
+            
+            // Play bonk sound
+            playSound(200, 0.1);
+            
+            // Item bounces back
+            itemContainerEl.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                itemContainerEl.style.transform = 'scale(1)';
+            }, 300);
+        }
+
+        // ============================================
+        // VISUAL EFFECTS
+        // ============================================
+        function createConfetti() {
+            const colors = ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6'];
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 1000);
+                }, i * 20);
+            }
+        }
+
+        function playSound(frequency, duration) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // ============================================
+        // DRAG & DROP (MOBILE FRIENDLY)
+        // ============================================
+        let touchStartX = 0;
+        let isDragging = false;
+
+        itemContainerEl.addEventListener('mousedown', startDrag);
+        itemContainerEl.addEventListener('touchstart', startDrag);
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag);
+        
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            touchStartX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const diff = currentX - touchStartX;
+            
+            itemContainerEl.style.transform = `translateX(${diff}px)`;
+        }
+
+        function endDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const currentX = e.type.includes('mouse') ? e.clientX : e.changedTouches[0].clientX;
+            const diff = currentX - touchStartX;
+            
+            itemContainerEl.style.transform = 'translateX(0)';
+            
+            if (diff > 100) {
+                handleFeed();
+            } else if (diff < -100) {
+                handleTrash();
+            }
+        }
+
+        // ============================================
+        // BUTTON EVENTS
+        // ============================================
+        feedBtn.addEventListener('click', handleFeed);
+        trashBtn.addEventListener('click', handleTrash);
+
+        // ============================================
+        // INITIALIZE GAME
+        // ============================================
+        setNewRule();
+        setNewItem();
+    </script>
+</body>
+</html>
+```
