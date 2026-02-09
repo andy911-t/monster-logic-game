@@ -237,14 +237,6 @@
         </div>
     </div>
 
-    <!-- Audio elements for sound effects -->
-    <audio id="chomp-sound" preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d1718ab41b.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="wrong-sound" preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_a538b93580.mp3" type="audio/mpeg">
-    </audio>
-
     <script>
         // ============================================
         // GAME DATA - Geometric shapes with colors
@@ -332,22 +324,54 @@
         const scoreEl = document.getElementById('score');
         const ruleInfoEl = document.getElementById('rule-info');
         const itemInfoEl = document.getElementById('item-info');
-        
-        // Audio elements
-        const chompSound = document.getElementById('chomp-sound');
-        const wrongSound = document.getElementById('wrong-sound');
 
         // ============================================
-        // SOUND FUNCTIONS
+        // SOUND FUNCTIONS - Using Web Audio API
         // ============================================
         function playChompSound() {
-            chompSound.currentTime = 0;
-            chompSound.play();
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create a fun "chomp chomp" eating sound
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // Quick pitch change for chomp effect
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.08);
+                    oscillator.type = 'square';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.08);
+                }, i * 120);
+            }
         }
 
         function playWrongSound() {
-            wrongSound.currentTime = 0;
-            wrongSound.play();
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Descending "uh-oh" sound
+            oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
+            oscillator.type = 'triangle';
+            
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
         }
 
         // ============================================
