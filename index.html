@@ -237,6 +237,14 @@
         </div>
     </div>
 
+    <!-- Audio elements for sound effects -->
+    <audio id="chomp-sound" preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d1718ab41b.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrong-sound" preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_a538b93580.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         // ============================================
         // GAME DATA - Geometric shapes with colors
@@ -324,6 +332,23 @@
         const scoreEl = document.getElementById('score');
         const ruleInfoEl = document.getElementById('rule-info');
         const itemInfoEl = document.getElementById('item-info');
+        
+        // Audio elements
+        const chompSound = document.getElementById('chomp-sound');
+        const wrongSound = document.getElementById('wrong-sound');
+
+        // ============================================
+        // SOUND FUNCTIONS
+        // ============================================
+        function playChompSound() {
+            chompSound.currentTime = 0;
+            chompSound.play();
+        }
+
+        function playWrongSound() {
+            wrongSound.currentTime = 0;
+            wrongSound.play();
+        }
 
         // ============================================
         // GAME LOGIC
@@ -422,8 +447,8 @@
             // Confetti
             createConfetti();
             
-            // Play sound (simple beep using Web Audio API)
-            playSound(800, 0.1);
+            // Play chomp sound
+            playChompSound();
             
             // Next item
             setTimeout(() => {
@@ -441,8 +466,8 @@
             monsterEl.classList.add('sad');
             setTimeout(() => monsterEl.classList.remove('sad'), 500);
             
-            // Play bonk sound
-            playSound(200, 0.1);
+            // Play wrong sound
+            playWrongSound();
             
             // Item bounces back
             itemContainerEl.style.transform = 'scale(0.8)';
@@ -468,24 +493,6 @@
                     setTimeout(() => confetti.remove(), 1000);
                 }, i * 20);
             }
-        }
-
-        function playSound(frequency, duration) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration);
         }
 
         // ============================================
