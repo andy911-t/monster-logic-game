@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -115,8 +114,41 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .rule-display {
-            font-size: 80px;
+        /* Visual rule displays */
+        .shape-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: inline-block;
+            border: 5px solid #2d3436;
+        }
+
+        .shape-square {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: inline-block;
+            border: 5px solid #2d3436;
+        }
+
+        .shape-star {
+            font-size: 100px;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));
+        }
+
+        .color-word {
+            font-size: 70px;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            letter-spacing: 3px;
+        }
+
+        .category-icon {
+            font-size: 100px;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));
         }
     </style>
 </head>
@@ -132,8 +164,8 @@
             <div id="monster" class="monster">👾</div>
             <div class="flex justify-center mt-4">
                 <div class="craving-bubble">
-                    <div class="text-2xl font-bold mb-2" style="color: #2d3436;">I want:</div>
-                    <div id="craving" class="rule-display">❤️</div>
+                    <div class="text-2xl font-bold mb-3" style="color: #2d3436;">I want:</div>
+                    <div id="craving" class="flex justify-center items-center min-h-[100px]"></div>
                 </div>
             </div>
         </div>
@@ -201,26 +233,31 @@
             { emoji: "🌙", color: "yellow", shape: "curved", category: "nature" },
         ];
 
-        // Rule configurations (what the monster can ask for)
+        // Rule configurations with clear visual displays
         const RULES = [
-            { type: "color", value: "red", display: "❤️" },
-            { type: "color", value: "yellow", display: "💛" },
-            { type: "color", value: "green", display: "💚" },
-            { type: "color", value: "blue", display: "💙" },
-            { type: "color", value: "orange", display: "🧡" },
-            { type: "color", value: "purple", display: "💜" },
-            { type: "color", value: "pink", display: "💗" },
-            { type: "color", value: "brown", display: "🤎" },
+            // COLORS - Show the word in that color
+            { type: "color", value: "red", displayType: "color", displayText: "RED", displayColor: "#e74c3c" },
+            { type: "color", value: "yellow", displayType: "color", displayText: "YELLOW", displayColor: "#f1c40f" },
+            { type: "color", value: "green", displayType: "color", displayText: "GREEN", displayColor: "#2ecc71" },
+            { type: "color", value: "blue", displayType: "color", displayText: "BLUE", displayColor: "#3498db" },
+            { type: "color", value: "orange", displayType: "color", displayText: "ORANGE", displayColor: "#e67e22" },
+            { type: "color", value: "purple", displayType: "color", displayText: "PURPLE", displayColor: "#9b59b6" },
+            { type: "color", value: "pink", displayType: "color", displayText: "PINK", displayColor: "#fd79a8" },
+            { type: "color", value: "brown", displayType: "color", displayText: "BROWN", displayColor: "#6c5ce7" },
+            { type: "color", value: "gray", displayType: "color", displayText: "GRAY", displayColor: "#636e72" },
+            { type: "color", value: "white", displayType: "color", displayText: "WHITE", displayColor: "#dfe6e9" },
             
-            { type: "shape", value: "round", display: "🔴" },
-            { type: "shape", value: "square", display: "🟦" },
-            { type: "shape", value: "star", display: "⭐" },
+            // SHAPES - Show geometric shape
+            { type: "shape", value: "round", displayType: "shape", displayShape: "circle" },
+            { type: "shape", value: "square", displayType: "shape", displayShape: "square" },
+            { type: "shape", value: "star", displayType: "shape", displayShape: "star" },
             
-            { type: "category", value: "food", display: "🍎" },
-            { type: "category", value: "animal", display: "🐶" },
-            { type: "category", value: "toy", display: "🎈" },
-            { type: "category", value: "vehicle", display: "🚗" },
-            { type: "category", value: "nature", display: "🌸" },
+            // CATEGORIES - Show representative emoji
+            { type: "category", value: "food", displayType: "category", displayEmoji: "🍎" },
+            { type: "category", value: "animal", displayType: "category", displayEmoji: "🐶" },
+            { type: "category", value: "toy", displayType: "category", displayEmoji: "🎈" },
+            { type: "category", value: "vehicle", displayType: "category", displayEmoji: "🚗" },
+            { type: "category", value: "nature", displayType: "category", displayEmoji: "🌸" },
         ];
 
         // ============================================
@@ -251,8 +288,49 @@
 
         function setNewRule() {
             currentRule = getRandomItem(RULES);
-            cravingEl.textContent = currentRule.display;
+            displayRule();
             ruleInfoEl.textContent = `${currentRule.type}: ${currentRule.value}`;
+        }
+
+        function displayRule() {
+            cravingEl.innerHTML = '';
+            
+            if (currentRule.displayType === 'color') {
+                // Show color word in that color
+                const colorWord = document.createElement('div');
+                colorWord.className = 'color-word';
+                colorWord.textContent = currentRule.displayText;
+                colorWord.style.color = currentRule.displayColor;
+                if (currentRule.displayColor === '#dfe6e9') {
+                    // White text needs dark background to be visible
+                    colorWord.style.textShadow = '3px 3px 0 #2d3436, -1px -1px 0 #2d3436, 1px -1px 0 #2d3436, -1px 1px 0 #2d3436';
+                }
+                cravingEl.appendChild(colorWord);
+                
+            } else if (currentRule.displayType === 'shape') {
+                // Show geometric shape
+                if (currentRule.displayShape === 'circle') {
+                    const circle = document.createElement('div');
+                    circle.className = 'shape-circle';
+                    cravingEl.appendChild(circle);
+                } else if (currentRule.displayShape === 'square') {
+                    const square = document.createElement('div');
+                    square.className = 'shape-square';
+                    cravingEl.appendChild(square);
+                } else if (currentRule.displayShape === 'star') {
+                    const star = document.createElement('div');
+                    star.className = 'shape-star';
+                    star.textContent = '⭐';
+                    cravingEl.appendChild(star);
+                }
+                
+            } else if (currentRule.displayType === 'category') {
+                // Show category emoji
+                const categoryIcon = document.createElement('div');
+                categoryIcon.className = 'category-icon';
+                categoryIcon.textContent = currentRule.displayEmoji;
+                cravingEl.appendChild(categoryIcon);
+            }
         }
 
         function setNewItem() {
@@ -418,4 +496,3 @@
     </script>
 </body>
 </html>
-```
