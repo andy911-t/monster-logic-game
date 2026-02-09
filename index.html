@@ -233,7 +233,7 @@
 
         <!-- Hidden Info (For Parent Reference) -->
         <div class="text-center mt-8 text-white text-sm opacity-50">
-            Rule: <span id="rule-info"></span> | Item: <span id="item-info"></span>
+            Rule: <span id="rule-info"></span> | Item: <span id="item-info"></span> | Correct in round: <span id="round-counter">0</span>/3
         </div>
     </div>
 
@@ -297,9 +297,8 @@
             pink: '#fd79a8'
         };
 
-        // Rule configurations with clear visual displays
-        const RULES = [
-            // COLORS - Show the word in that color
+        // Separate color and shape rules
+        const COLOR_RULES = [
             { type: "color", value: "red", displayType: "color", displayText: "RED", displayColor: "#e74c3c" },
             { type: "color", value: "yellow", displayType: "color", displayText: "YELLOW", displayColor: "#f1c40f" },
             { type: "color", value: "green", displayType: "color", displayText: "GREEN", displayColor: "#2ecc71" },
@@ -307,8 +306,9 @@
             { type: "color", value: "orange", displayType: "color", displayText: "ORANGE", displayColor: "#e67e22" },
             { type: "color", value: "purple", displayType: "color", displayText: "PURPLE", displayColor: "#9b59b6" },
             { type: "color", value: "pink", displayType: "color", displayText: "PINK", displayColor: "#fd79a8" },
-            
-            // SHAPES - Show geometric shape
+        ];
+
+        const SHAPE_RULES = [
             { type: "shape", value: "round", displayType: "shape", displayShape: "circle" },
             { type: "shape", value: "square", displayType: "shape", displayShape: "square" },
             { type: "shape", value: "star", displayType: "shape", displayShape: "star" },
@@ -320,6 +320,8 @@
         let currentRule = null;
         let currentItem = null;
         let score = 0;
+        let correctAnswersInRound = 0; // Track correct answers for current rule
+        let lastRuleType = null; // Track if last rule was color or shape
 
         // ============================================
         // DOM ELEMENTS
@@ -332,6 +334,7 @@
         const scoreEl = document.getElementById('score');
         const ruleInfoEl = document.getElementById('rule-info');
         const itemInfoEl = document.getElementById('item-info');
+        const roundCounterEl = document.getElementById('round-counter');
         
         // Audio elements
         const correctSound = document.getElementById('correct-sound');
@@ -358,9 +361,37 @@
         }
 
         function setNewRule() {
-            currentRule = getRandomItem(RULES);
+            // Alternate between color and shape rules
+            let rulePool;
+            
+            if (lastRuleType === 'color') {
+                // Last was color, now pick shape
+                rulePool = SHAPE_RULES;
+                lastRuleType = 'shape';
+            } else if (lastRuleType === 'shape') {
+                // Last was shape, now pick color
+                rulePool = COLOR_RULES;
+                lastRuleType = 'color';
+            } else {
+                // First time - randomly pick which to start with
+                if (Math.random() < 0.5) {
+                    rulePool = COLOR_RULES;
+                    lastRuleType = 'color';
+                } else {
+                    rulePool = SHAPE_RULES;
+                    lastRuleType = 'shape';
+                }
+            }
+            
+            currentRule = getRandomItem(rulePool);
+            correctAnswersInRound = 0; // Reset counter for new rule
             displayRule();
+            updateRuleInfo();
+        }
+
+        function updateRuleInfo() {
             ruleInfoEl.textContent = `${currentRule.type}: ${currentRule.value}`;
+            roundCounterEl.textContent = correctAnswersInRound;
         }
 
         function displayRule() {
@@ -437,7 +468,9 @@
 
         function correct() {
             score++;
+            correctAnswersInRound++;
             scoreEl.textContent = score;
+            updateRuleInfo();
             
             // Happy monster
             monsterEl.classList.remove('sad');
@@ -453,8 +486,9 @@
             // Next item
             setTimeout(() => {
                 setNewItem();
-                // Occasionally change rule
-                if (Math.random() < 0.3) {
+                
+                // Change rule every 3 correct answers
+                if (correctAnswersInRound >= 3) {
                     setNewRule();
                 }
             }, 600);
@@ -518,7 +552,7 @@
         function drag(e) {
             if (!isDragging) return;
             
-            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].currentX;
             const diff = currentX - touchStartX;
             
             itemContainerEl.style.transform = `translateX(${diff}px)`;
@@ -554,4 +588,3 @@
     </script>
 </body>
 </html>
-```
