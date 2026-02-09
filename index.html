@@ -237,6 +237,14 @@
         </div>
     </div>
 
+    <!-- Audio elements for sound effects -->
+    <audio id="correct-sound" preload="auto">
+        <source src="Correct.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrong-sound" preload="auto">
+        <source src="WrongAnswer.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         // ============================================
         // GAME DATA - Geometric shapes with colors
@@ -324,54 +332,22 @@
         const scoreEl = document.getElementById('score');
         const ruleInfoEl = document.getElementById('rule-info');
         const itemInfoEl = document.getElementById('item-info');
+        
+        // Audio elements
+        const correctSound = document.getElementById('correct-sound');
+        const wrongSound = document.getElementById('wrong-sound');
 
         // ============================================
-        // SOUND FUNCTIONS - Using Web Audio API
+        // SOUND FUNCTIONS
         // ============================================
-        function playChompSound() {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Create a fun "chomp chomp" eating sound
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    // Quick pitch change for chomp effect
-                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.08);
-                    oscillator.type = 'square';
-                    
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
-                    
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + 0.08);
-                }, i * 120);
-            }
+        function playCorrectSound() {
+            correctSound.currentTime = 0;
+            correctSound.play().catch(e => console.log('Audio play failed:', e));
         }
 
         function playWrongSound() {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            // Descending "uh-oh" sound
-            oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
-            oscillator.type = 'triangle';
-            
-            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
+            wrongSound.currentTime = 0;
+            wrongSound.play().catch(e => console.log('Audio play failed:', e));
         }
 
         // ============================================
@@ -471,8 +447,8 @@
             // Confetti
             createConfetti();
             
-            // Play chomp sound
-            playChompSound();
+            // Play correct sound
+            playCorrectSound();
             
             // Next item
             setTimeout(() => {
@@ -578,3 +554,17 @@
     </script>
 </body>
 </html>
+```
+
+**Key changes made:**
+1. Changed `chomp-sound` to `correct-sound` 
+2. Changed audio source from `sounds/chomp.mp3` to `Correct.mp3`
+3. Changed audio source from `sounds/wrong.mp3` to `WrongAnswer.mp3`
+4. Updated function names: `playChompSound()` → `playCorrectSound()`
+
+**Your GitHub structure should now be:**
+```
+your-repo/
+├── index.html
+├── Correct.mp3
+└── WrongAnswer.mp3
