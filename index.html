@@ -200,28 +200,6 @@
             border-right: 60px solid transparent;
             border-top: 100px solid currentColor;
         }
-
-        /* Speech bubble for monster */
-        .speech-bubble {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px 50px;
-            border-radius: 30px;
-            font-size: 48px;
-            font-weight: bold;
-            color: #2d3436;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 1000;
-            animation: popIn 0.3s ease-out;
-        }
-
-        @keyframes popIn {
-            0% { transform: translate(-50%, -50%) scale(0); }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
@@ -328,24 +306,6 @@
             { type: "shape", value: "star", displayType: "shape", displayShape: "star" },
         ];
 
-        // Happy phrases (when correct)
-        const HAPPY_PHRASES = [
-            "Yummy! Thank you!",
-            "Nom nom nom!",
-            "Delicious!",
-            "So tasty!",
-            "Thank you!"
-        ];
-
-        // Reject phrases (when incorrect)
-        const REJECT_PHRASES = [
-            "No no no!",
-            "Uh uh!",
-            "I don't eat it!",
-            "Not this one!",
-            "No thanks!"
-        ];
-
         // ============================================
         // GAME STATE
         // ============================================
@@ -364,32 +324,6 @@
         const scoreEl = document.getElementById('score');
         const ruleInfoEl = document.getElementById('rule-info');
         const itemInfoEl = document.getElementById('item-info');
-
-        // ============================================
-        // SPEECH SYNTHESIS (Robot Voice)
-        // ============================================
-        function speak(text) {
-            // Cancel any ongoing speech
-            window.speechSynthesis.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9; // Slightly slower for robotic effect
-            utterance.pitch = 1.2; // Higher pitch for monster voice
-            utterance.volume = 1.0;
-            
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function showSpeechBubble(text) {
-            const bubble = document.createElement('div');
-            bubble.className = 'speech-bubble';
-            bubble.textContent = text;
-            document.body.appendChild(bubble);
-            
-            setTimeout(() => {
-                bubble.remove();
-            }, 1500);
-        }
 
         // ============================================
         // GAME LOGIC
@@ -485,16 +419,11 @@
             monsterEl.classList.add('happy');
             setTimeout(() => monsterEl.classList.remove('happy'), 500);
             
-            // Random happy phrase
-            const phrase = getRandomItem(HAPPY_PHRASES);
-            showSpeechBubble(phrase);
-            speak(phrase);
-            
             // Confetti
             createConfetti();
             
-            // Play chewing sound
-            playChewingSound();
+            // Play sound (simple beep using Web Audio API)
+            playSound(800, 0.1);
             
             // Next item
             setTimeout(() => {
@@ -503,7 +432,7 @@
                 if (Math.random() < 0.3) {
                     setNewRule();
                 }
-            }, 1800);
+            }, 600);
         }
 
         function incorrect() {
@@ -512,66 +441,14 @@
             monsterEl.classList.add('sad');
             setTimeout(() => monsterEl.classList.remove('sad'), 500);
             
-            // Random reject phrase
-            const phrase = getRandomItem(REJECT_PHRASES);
-            showSpeechBubble(phrase);
-            speak(phrase);
-            
-            // Play reject sound
-            playRejectSound();
+            // Play bonk sound
+            playSound(200, 0.1);
             
             // Item bounces back
             itemContainerEl.style.transform = 'scale(0.8)';
             setTimeout(() => {
                 itemContainerEl.style.transform = 'scale(1)';
             }, 300);
-        }
-
-        // ============================================
-        // SOUND EFFECTS
-        // ============================================
-        function playChewingSound() {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // Create a fun "munch munch" sound
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    oscillator.frequency.value = 400 + Math.random() * 200;
-                    oscillator.type = 'square';
-                    
-                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                    
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + 0.1);
-                }, i * 150);
-            }
-        }
-
-        function playRejectSound() {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            // Descending "bonk" sound
-            oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.3);
-            oscillator.type = 'sawtooth';
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
         }
 
         // ============================================
@@ -591,6 +468,24 @@
                     setTimeout(() => confetti.remove(), 1000);
                 }, i * 20);
             }
+        }
+
+        function playSound(frequency, duration) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
         }
 
         // ============================================
